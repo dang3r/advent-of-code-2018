@@ -1,3 +1,5 @@
+import heapq
+
 i = {}  # Number of pointers to each node
 v = {}  # Map from node to the nodes that depend on it
 n = []
@@ -16,27 +18,64 @@ for line in open('07_input.txt'):
 
 # Nodes that no one points to
 sources = set([x[0] for x in n]) - non_sources
+j = {**i}
+def part_1():
+    l = ''
+    h = []
+    for s in sources:
+        heapq.heappush(h, (i.get(s, 0), s))
 
-work = [[0,0] for i in range(4)]
-l = ''
+    seen = set()
+    while h:
+        count, node = heapq.heappop(h)
+        if node in seen:
+            continue
+        seen.add(node)
+        for child in v[node]:
+            i[child] -= 1
+            heapq.heappush(h, (i[child], child))
+        l += node
+    print(l)
 
-h = [s for s in sources]
-seen = set()
-while h:
-    h.sort(key=lambda x: (i.get(x, 0), x))
-    for w in work:
-        if w[1] == 0 and h:
-            if h:
-                work[i][0] = h[0]
-                work[i][1] = 60 + ord(h[0]) - (ord('A') - 1)
-    head = h[0]
-    h = h[1:]
-    if head in seen:
-        continue
-    seen.add(head)
+part_1()
+i = j
+print(i)
+class Elf:
+    def __init__(self):
+        self.count = 0
+        self.node = None
+print(sources)
+def part_2():
+    l = ''
+    h = []
+    for s in sources:
+        heapq.heappush(h, (i.get(s, 0), s))
 
-    l += head
-    for node in v[head]:
-        i[node] -= 1
-        h.append(node)
-print(l)
+    elfs = [Elf() for _ in range(5)]
+    seen = set()
+    cnt = 0
+    while h or sum([elf.count for elf in elfs]):
+        for idx, elf in enumerate(elfs):
+            elf.count = max(elf.count - 1, 0)
+            print(cnt, idx, elf.count, elf.node)
+            if not elf.count:
+                if elf.node:
+                    l += elf.node
+                    for child in v[elf.node]:
+                        i[child] -= 1
+                        heapq.heappush(h, (i[child], child))
+                    elf.node = None
+                while h:
+                    count, node = heapq.heappop(h)
+                    if node in seen:
+                        continue
+                    if count:
+                        heapq.heappush(h, (count, node))
+                        break
+                    elf.count = 60 + ord(node) - ord('A') + 1
+                    elf.node = node
+                    seen.add(node)
+                    break
+        cnt += 1
+    print(cnt)
+part_2()

@@ -1,5 +1,7 @@
 import re
 
+
+
 lines = open('10_input.txt').readlines()
 p = []
 for line in lines:
